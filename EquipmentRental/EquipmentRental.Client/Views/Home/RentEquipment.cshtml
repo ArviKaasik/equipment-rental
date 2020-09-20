@@ -1,0 +1,47 @@
+﻿@model EquipmentRentalClient.Models.EquipmentViewModel
+@{
+    ViewData["Title"] = "Available Equipment";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Available Equipment</h1>
+</div>
+
+<div class="text-center">
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+        </tr>
+
+        @for (int i = 0; i < Model.AvailableEquipment.Count; i++)
+        {
+            var equipment = Model.AvailableEquipment[i];
+            var nameId = $"equipment_name{i}";
+            var typeId = $"equipment_type{i}";
+            var daysId = $"equipment_days{i}";
+            var apiEquipmentValue = (short)equipment.EquipmentType;
+                    <tr>
+                        <td id=@nameId>@Html.DisplayFor(modelItem => equipment.Name)</td>
+                        <td id=@typeId ApiValue=@apiEquipmentValue>@Html.DisplayFor(modelItem => equipment.EquipmentType)</td>
+                        <td id=@daysId><input type="number" min="1" value="1"></td>
+                        <td><button onclick="AddToCart(@nameId, @typeId, @daysId)">Add to Cart</button></td>
+                        <!--<td>@Html.ActionLink("Edit", "GenerateInvoice", new { equipment = Model.AvailableEquipment}, null)</td>-->
+                    </tr>
+                }
+    </table>
+    
+    <div class="text-center">
+        <h1 class="display-4">Equipment to rent</h1>
+    </div>
+    <table id="cart_table">
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Amount To Rent</th>
+        </tr>
+    </table>
+
+    <button onclick="GenerateInvoice()">Get Invoice</button>
+</div>
+

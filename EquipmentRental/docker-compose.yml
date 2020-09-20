@@ -1,0 +1,36 @@
+version: '3.5'
+services:
+  rental-client:
+    container_name: rental-client
+    image: rental-client
+    ports:
+      - "80:80"
+    logging:
+      driver: json-file
+      options:
+           max-size: "100m"
+    depends_on: 
+      - rabbitmq
+  rental-inventory:
+    container_name: rental-inventory
+    image: rental-inventory
+    logging:
+      driver: json-file
+      options:
+           max-size: "100m"
+    depends_on: 
+      - rabbitmq
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: rabbitmq
+    image: rabbitmq:3.7.7-management
+    #image: rabbitmq:3.7-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    logging:
+      driver: json-file
+      options:
+           max-size: "100m"
+    healthcheck:
+      test: "exit 0"
