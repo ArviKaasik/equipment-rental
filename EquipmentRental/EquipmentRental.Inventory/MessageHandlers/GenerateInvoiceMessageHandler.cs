@@ -40,9 +40,9 @@ namespace EquipmentRental.Inventory.MessageHandlers
             });
         }
 
-        private decimal GetTotalPrice(List<InvoiceItem> invoiceItems) => invoiceItems.Sum(item => item.RentalPrice);
+        public decimal GetTotalPrice(List<InvoiceItem> invoiceItems) => invoiceItems.Sum(item => item.RentalPrice);
         
-        private int GetLoyalityPoints(List<EquipmentItem> equipmentItems)
+        public int GetLoyalityPoints(List<EquipmentItem> equipmentItems)
         {
             var loyalityPoints = 0;
             foreach (var item in equipmentItems)
@@ -59,7 +59,7 @@ namespace EquipmentRental.Inventory.MessageHandlers
             return invoiceItems;
         }
 
-        private InvoiceItem CreateInvoiceItem(EquipmentItem equipment)
+        public InvoiceItem CreateInvoiceItem(EquipmentItem equipment)
         {
             ValidateEquipment(equipment);
             switch (equipment.EquipmentType)
@@ -75,33 +75,21 @@ namespace EquipmentRental.Inventory.MessageHandlers
             }
         }
 
-        private InvoiceItem CreateHeavyEquipmentInvoice (EquipmentItem equipment) => new InvoiceItem
-        {
-            ItemName = equipment.Name,
-            RentalPrice = _options.OneTimeFee + equipment.RentalDays * _options.PremiumFee
-        };
+        private InvoiceItem CreateHeavyEquipmentInvoice(EquipmentItem equipment) => new InvoiceItem
+            {ItemName = equipment.Name, RentalPrice = _options.OneTimeFee + equipment.RentalDays * _options.PremiumFee};
 
-        private InvoiceItem CreateRegularEquipmentInvoice(EquipmentItem equipment)
-        {
-            return new InvoiceItem
-            {
-                ItemName = equipment.Name,
-                RentalPrice = _options.OneTimeFee + CalculateDaysFee(equipment.RentalDays, 2)
-            };
-        }
+        private InvoiceItem CreateRegularEquipmentInvoice(EquipmentItem equipment) => new InvoiceItem
+            {ItemName = equipment.Name, RentalPrice = _options.OneTimeFee + CalculateDaysFee(equipment.RentalDays, 2)};
 
         private InvoiceItem CreateSpecializedEquipmentInvoice(EquipmentItem equipment) => new InvoiceItem
-        {
-            ItemName = equipment.Name,
-            RentalPrice = CalculateDaysFee(equipment.RentalDays, 3)
-        };
+            {ItemName = equipment.Name, RentalPrice = CalculateDaysFee(equipment.RentalDays, 3)};
 
         /// <summary>
         /// First x premiumDays are billed at premium price, after that, regular fee is applied 
         /// </summary>
         private int CalculateDaysFee(int rentDays, int premiumDays) =>
             rentDays > premiumDays
-                ? rentDays * _options.PremiumFee + (rentDays - premiumDays) * _options.RegularFee
+                ? premiumDays * _options.PremiumFee + (rentDays - premiumDays) * _options.RegularFee
                 : rentDays * _options.PremiumFee;
 
         private void ValidateEquipment(EquipmentItem equipment)

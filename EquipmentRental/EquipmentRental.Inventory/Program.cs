@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using EquipmentRental.Common;
 using EquipmentRental.Inventory.MessageHandlers;
 using EquipmentRental.Inventory.Options;
 using EquipmentRental.Inventory.Services;
@@ -9,13 +10,14 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace EquipmentRental.Inventory
 {
     class Program
     {
         public static IConfigurationRoot configuration;
-        
+
         static async Task Main(string[] args)
         {
             var services = new ServiceCollection();
@@ -25,18 +27,14 @@ namespace EquipmentRental.Inventory
                 var bus = await InitializeRabbitMQ(serviceProvider);
 
                 serviceProvider.GetService<IEquipmentInventoryService>().LoadInventory();
-                
+
                 try
                 {
                     while (true)
                     {
-                        await bus.StartAsync();
+                        await Task.Delay(10000);
                     }
-                    Console.WriteLine("Press enter to exit");
-
-                    await Task.Run(() => Console.ReadLine());
-
-                    }
+                }
                 finally
                 {
                     await bus.StopAsync();
@@ -48,20 +46,21 @@ namespace EquipmentRental.Inventory
         {
             var bus = Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
-                cfg.Host("rabbitmq", "/", h =>
+                var options = provider.GetService<IOptions<RabbitMqConnectionOptions>>().Value;
+                cfg.Host(options.Host, "/", h =>
                 {
-                    h.Username("guest");
-                    h.Password("guest");
+                    h.Username(options.UserName);
+                    h.Password(options.Password);
                 });
 
-                cfg.ReceiveEndpoint("get_available_equipment",
+                cfg.ReceiveEndpoint(options.EquipmentQueue,
                     e => { e.Consumer(provider.GetService<GetEquipmentMessageHandler>); });
-                cfg.ReceiveEndpoint("generate_invoice",
+                cfg.ReceiveEndpoint(options.InvoiceQueue,
                     e => { e.Consumer(provider.GetService<GenerateInvoiceMessageHandler>); });
             });
 
-            //await bus.StartAsync();
-            
+            await bus.StartAsync();
+
             return bus;
         }
 
@@ -75,6 +74,7 @@ namespace EquipmentRental.Inventory
             services.AddSingleton(configuration);
             
             services.Configure<EquipmentInventoryOptions>(configuration);
+            services.Configure<RabbitMqConnectionOptions>(configuration.GetSection("RabbitMQ"));
             
             services.AddLogging(configure => configure.AddConsole());
 

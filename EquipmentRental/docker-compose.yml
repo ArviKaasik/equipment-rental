@@ -11,6 +11,9 @@ services:
            max-size: "100m"
     depends_on: 
       - rabbitmq
+    healthcheck:
+      test: exit 0 || exit 1
+    restart: always
   rental-inventory:
     container_name: rental-inventory
     image: rental-inventory
@@ -20,11 +23,13 @@ services:
            max-size: "100m"
     depends_on: 
       - rabbitmq
+    healthcheck:
+      test: exit 0 || exit 1
+    restart: always
   rabbitmq:
     container_name: rabbitmq
     hostname: rabbitmq
     image: rabbitmq:3.7.7-management
-    #image: rabbitmq:3.7-management-alpine
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -33,4 +38,5 @@ services:
       options:
            max-size: "100m"
     healthcheck:
-      test: "exit 0"
+      test: exit 0 || exit 1
+    restart: always

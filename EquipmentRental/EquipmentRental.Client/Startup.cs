@@ -24,15 +24,17 @@ namespace EquipmentRentalClient
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
+            services.Configure<RabbitMqConnectionOptions>(Configuration.GetSection("RabbitMQ"));
 
             services.AddMassTransit(x =>
             {
+                var options = Configuration.GetSection("RabbitMQ").Get<RabbitMqConnectionOptions>();
                 x.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(config =>
                 {
-                    config.Host(new Uri("rabbitmq://rabbitmq"), h =>
+                    config.Host(new Uri($"rabbitmq://{options.Host}"), h =>
                     {
-                        h.Username("guest");
-                        h.Password("guest");
+                        h.Username(options.UserName);
+                        h.Password(options.Password);
                     });
                 }));
 

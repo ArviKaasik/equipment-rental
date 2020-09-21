@@ -7,6 +7,7 @@ using EquipmentRental.Common.Requests;
 using EquipmentRental.Common.Responses;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace EquipmentRentalClient.Services
@@ -21,34 +22,35 @@ namespace EquipmentRentalClient.Services
     {
         private readonly ILogger _logger;
         private readonly IBus _bus;
+        private readonly RabbitMqConnectionOptions _options;
 
-        public EquipmentService(ILogger<EquipmentService> logger, IBus bus)
+        public EquipmentService(ILogger<EquipmentService> logger, IBus bus, IOptions<RabbitMqConnectionOptions> options)
         {
             _logger = logger;
             _bus = bus;
+            _options = options.Value;
         }
 
         public async Task<List<Equipment>> GetAvailableEquipment()
         {
-            var requestAddress = new Uri("rabbitmq://localhost/get_available_equipment");
+            var requestAddress = new Uri($"rabbitmq://{_options.Host}/{_options.EquipmentQueue}");
+
+            var request = new EquipmentInventoryRequest();
+            _logger.LogInformation($"Sending InvoiceRequest for {JsonConvert.SerializeObject(request)} to {requestAddress}");
 
             var client = _bus.CreateRequestClient<EquipmentInventoryRequest>(requestAddress);
-            _logger.LogInformation($"Requesting Inventory!");
-            var response = await client.GetResponse<EquipmentInventoryResponse>(new EquipmentInventoryRequest());
-                //TODO handle failures!
-            return response.Message.Equipment;
+            return (await client.GetResponse<EquipmentInventoryResponse>(request)).Message.Equipment;
         }
 
         public async Task<Invoice> GenerateInvoice(List<EquipmentItem> equipment)
         {
-            var requestAddress = new Uri("rabbitmq://localhost/generate_invoice");
+            var requestAddress = new Uri($"rabbitmq://{_options.Host}/{_options.InvoiceQueue}");
 
+            var request = new GenerateInvoiceRequest {RentedEquipment = equipment};
+            _logger.LogInformation($"Sending InvoiceRequest for {JsonConvert.SerializeObject(request)} to {requestAddress}");
+            
             var client = _bus.CreateRequestClient<GenerateInvoiceRequest>(requestAddress);
-
-            var response = await client.GetResponse<GenerateInvoiceResponse>(new GenerateInvoiceRequest
-                {RentedEquipment = equipment});
-            //TODO handle failures!
-            return response.Message.Invoice;
+            return (await client.GetResponse<GenerateInvoiceResponse>(request)).Message.Invoice;
         }
     }
 }

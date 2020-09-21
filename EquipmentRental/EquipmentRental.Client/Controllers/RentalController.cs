@@ -29,7 +29,7 @@ namespace EquipmentRentalClient.Controllers
 
         public async Task<IActionResult> RentEquipment()
         {
-            _logger.LogInformation($"Rent equipment called!");
+            //TODO handle failures!
             var availableEquipment = await _equipmentService.GetAvailableEquipment();
             return View(new EquipmentViewModel {AvailableEquipment = availableEquipment});
         }
@@ -38,8 +38,7 @@ namespace EquipmentRentalClient.Controllers
         [Route("Home/GenerateInvoice")]
         public async Task<IActionResult> GenerateInvoice([Required] [FromBody] GetInvoiceRequest request)
         {
-            _logger.LogInformation($"GenerateInvoice Called!, equipment: {request.Equipment.Count}");
-
+            //TODO handle failures!
             var invoice = await _equipmentService.GenerateInvoice(request.Equipment);
 
             _logger.LogInformation($"Sending invoice: {JsonConvert.SerializeObject(invoice)}");
