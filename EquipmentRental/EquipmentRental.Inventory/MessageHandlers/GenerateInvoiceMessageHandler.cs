@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using EquipmentRental.Common;
 using EquipmentRental.Common.DataModels;
 using EquipmentRental.Common.Requests;
 using EquipmentRental.Common.Responses;
@@ -34,7 +34,7 @@ namespace EquipmentRental.Inventory.MessageHandlers
                 {
                     Title = Guid.NewGuid().ToString(),
                     InvoiceItems = invoiceItems,
-                    Price = String.Format("€{0:C}", GetTotalPrice(invoiceItems)),
+                    Price = String.Format(CultureInfo.GetCultureInfo("fr-FR"), "€{0:}", GetTotalPrice(invoiceItems)),
                     LoyalityPoints = GetLoyalityPoints(context.Message.RentedEquipment)
                 }
             });

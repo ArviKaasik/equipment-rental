@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Threading.Tasks;
 using EquipmentRental.Common;
+using EquipmentRental.Common.DataModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using EquipmentRentalClient.Models;
@@ -29,17 +30,32 @@ namespace EquipmentRentalClient.Controllers
 
         public async Task<IActionResult> RentEquipment()
         {
-            //TODO handle failures!
-            var availableEquipment = await _equipmentService.GetAvailableEquipment();
-            return View(new EquipmentViewModel {AvailableEquipment = availableEquipment});
+            try
+            {
+                var availableEquipment = await _equipmentService.GetAvailableEquipment();
+                return View(new EquipmentViewModel {AvailableEquipment = availableEquipment});
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Exception occured while requesting available equipment");
+                return RedirectError("Exception occured while requesting available equipment. Please try again later");
+            }
         }
 
         [HttpPost]
         [Route("Home/GenerateInvoice")]
         public async Task<IActionResult> GenerateInvoice([Required] [FromBody] GetInvoiceRequest request)
         {
-            //TODO handle failures!
-            var invoice = await _equipmentService.GenerateInvoice(request.Equipment);
+            Invoice invoice;
+            try
+            {
+                invoice = await _equipmentService.GenerateInvoice(request.Equipment);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception occured while generating invoice");
+                return RedirectError("Exception occured while generating invoice. Please try again later");
+            }
 
             _logger.LogInformation($"Sending invoice: {JsonConvert.SerializeObject(invoice)}");
             
@@ -60,6 +76,19 @@ namespace EquipmentRentalClient.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
+        }
+
+        [Route("/Home/Error")]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error(string message)
+        {
+            return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier, Message = message});
+        }
+
+        private IActionResult RedirectError([FromRoute]string message)
+        {
+            var encodedMessage = System.Web.HttpUtility.UrlEncode($"{message}");
+            return Redirect($"Home/Error?message={encodedMessage}");
         }
     }
 }
