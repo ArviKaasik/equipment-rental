@@ -12,6 +12,8 @@ The solution should be fairly scalable. Initially, I looked into RabbitMQ RPC pa
 
 Both microsevices can be built and run with .NET Core SDK. They are also supplied with Dockerfiles to easily create local docker images. There's also some scripts that make it easier to build docker images and clean the images up afterwards. Services are configured to work when built to images and images launched with supplied docker-compose.yml
 
+When running inventory service with visual studio, appsettings.json file needs to be modified. Just use different rabbitmq host.
+
 ## How to run
 
 It is recommended to run this solution using docker-compose file supplied, this ensures that rabbitMQ is also deployed. 
