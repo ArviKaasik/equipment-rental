@@ -11,7 +11,7 @@ function AddToCart(name, equipmentType, rentalDays){
     let cell3 = row.insertCell(2);
     cell1.innerHTML = name.innerText;
     cell2.innerHTML = equipmentType.innerText;
-    cell2.ApiValue = equipmentType.ApiValue;
+    cell2.ApiValue = equipmentType.getAttribute("ApiValue");
     cell3.innerHTML = rentalDays.firstChild.value;
 }
 
@@ -53,7 +53,7 @@ function GetCartEquipment(){
         let cells = table.rows[i].cells;
         equipmentItems[i-1] = {
             Name: cells[0].innerText,
-            EquipmentType: cells[1].ApiValue,
+            EquipmentType: parseInt(cells[1].ApiValue),
             RentalDays: parseInt(cells[2].innerText)
         };
     }
